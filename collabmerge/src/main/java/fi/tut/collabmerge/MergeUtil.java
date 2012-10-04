@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.vaadin.aceeditor.collab.DocDiff;
@@ -17,31 +16,19 @@ import org.vaadin.diffsync.TextDiff;
 
 public class MergeUtil {
 
-	public static class DocWithConflicts {
-		public final Doc doc;
-		public final List<Conflict> conflicts;
-		DocWithConflicts(Doc doc, List<Conflict> conflicts) {
-			this.doc = doc;
-			this.conflicts = conflicts;
-		}
-	}
-	
-	private static Random rnd = new Random();
+	//private static Random rnd = new Random();
 	private static ConcurrentHashMap<String, MergeAuthor> allAuthKeys = new ConcurrentHashMap<String, MergeAuthor>();
 	private static ConcurrentHashMap<String, Collection<String>> mergerCollaborators = new ConcurrentHashMap<String, Collection<String>>();
 
 	
-	public static String newMerge(String mergeText, String filename, List<Author> authors) {
-		DocWithConflicts dwc = docAndConflictsFromMergeText(mergeText);
-		Shared<Doc, DocDiff> st = new Shared<Doc, DocDiff>(dwc.doc);
-		Merge m = new Merge(st, filename, authors, dwc.conflicts);
-		return createAuthFor(m, authors);
+	public static String newMerge(List<Author> authors) {
+		return createAuthFor(new MultiMerge(authors));
 	}
 
-	synchronized private static String createAuthFor(Merge m, List<Author> authors) {
+	synchronized private static String createAuthFor(MultiMerge m) {
 		String mergerAuthKey = null;
 		LinkedList<String> otherAuthKeys = new LinkedList<String>();
-		for (Author a : authors) {
+		for (Author a : m.getAuthors()) {
 			String authKey = addMergeAuthor(new MergeAuthor(m, a));
 			if (a.isMerger) {
 				mergerAuthKey = authKey;
@@ -52,16 +39,21 @@ public class MergeUtil {
 		addMergerCollaborators(mergerAuthKey, otherAuthKeys);
 		return mergerAuthKey;
 	}
+	
+	public static synchronized String getMergeResultForFile(String authKey, String filename) {
+		MergeResult result = waitForMerge(authKey);
+		return result==null ? null : result.getFile(filename);
+	}
 
-	public static String waitForMerge(String authKey) {
+	public static synchronized MergeResult waitForMerge(String authKey) {
 		MergeAuthor ma = getMergeAuthor(authKey);
 		if (ma == null || !ma.author.isMerger) {
 			return null;
 		}
 
-		String finalText = ma.merge.awaitFinalText();
+		MergeResult result = ma.merge.awaitMergeResult();
 		destroyMerge(authKey);
-		return finalText;
+		return result;
 	}
 
 	private synchronized static void destroyMerge(String authKey) {
@@ -94,7 +86,7 @@ public class MergeUtil {
 		return mergerCollaborators.get(auth);
 	}
 
-	public static DocWithConflicts docAndConflictsFromMergeText(String mergeText) {
+	public static DocWithConflicts docAndConflictsFromMergeText(String filename, String mergeText) {
 		StringBuilder sb = new StringBuilder();
 
 		HashMap<String, Marker> markers = new HashMap<String, Marker>();
@@ -119,7 +111,7 @@ public class MergeUtil {
 					+ my.length(), "conflictmarker", "text", false));
 			sb.append(my);
 
-			Conflict c = new Conflict(my, others, markerId);
+			Conflict c = new Conflict(filename, markerId, my, others);
 			conflicts.add(c);
 
 			i = mergeText.indexOf("\n", oe + 1);

@@ -42,4 +42,6 @@
     <inherits name="org.vaadin.aceeditor.collab.gwt.CollabAceEditorWidgetSet" />
 
     <inherits name="org.vaadin.chatbox.gwt.ChatBoxWidgetSet" />
+
+    <inherits name="com.github.wolfie.refresher.RefresherApplicationWidgetset" />
 </module>

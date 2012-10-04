@@ -5,10 +5,12 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.Map;
 
+import com.github.wolfie.refresher.Refresher;
 import com.vaadin.Application;
 import com.vaadin.terminal.DownloadStream;
 import com.vaadin.terminal.ParameterHandler;
 import com.vaadin.terminal.URIHandler;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.Notification;
 
@@ -17,23 +19,37 @@ public class CMApplication extends Application {
 
 	private Window mainWindow;
 	
-	
+	// for debugging
 	static {
-		String s ="0123\n\n678\n" +
-				"<<<<<<< HEAD\n" +
-				"www\n" +
-				"=======\n" +
-				"qqq\n" +
-				">>>>>>> caccb57504b807a14d35d130b0376eb324d7128b";
-		// for debugging
 		LinkedList<Author> authors = new LinkedList<Author>();
 		authors.add( new Author("Eka", "eka@example.com", true, false) );
 		authors.add( new Author("Toka", "toka@example.com", false, true) );
 		authors.add( new Author("Anonymous", "", false, false) );
-		MergeUtil.newMerge(s, "testi.txt", authors);
+		String auth = MergeUtil.newMerge(authors);
+		
+		String s ="# a python file\n\ndef func()\n" +
+				
+				"<<<<<<< HEAD\n" +
+				"\tfunc2()\n" +
+				"=======\n" +
+				"\tfunc1()\n" +
+				">>>>>>> caccb57504b807a14d35d130b0376eb324d7128b" +
+				"\n\ndef func2():\n" +
+				"\tpass\n\n";
+		MergeUtil.getMergeAuthor(auth).merge.addFile("jee.py", s);
+		
+		String s2 ="# another python file\n\ndef func()\n" +
+				
+				"<<<<<<< HEAD\n" +
+				"\tfunc4()\n" +
+				"=======\n" +
+				"\tfunc222()\n" +
+				">>>>>>> caccb57504b807a14d35d130b0376eb324d7128b" +
+				"\n\ndef func2():\n" +
+				"\tpass\n\n";
+		MergeUtil.getMergeAuthor(auth).merge.addFile("jee2.py", s2);
 	}
 
-		
 	private URL myURL;
 	private String myAuthKey;
 	
@@ -95,7 +111,19 @@ public class CMApplication extends Application {
 	
 	
 	private void showWindow(String authKey, MergeAuthor mergeAuthor) {
-		mainWindow.setCaption(mergeAuthor.merge.getFilename()+" - "+mergeAuthor.author.name);
-		mainWindow.setContent(new CMWidget(authKey, myURL));
+		//mainWindow.setCaption(mergeAuthor.merge.getFilename()+" - "+mergeAuthor.author.name);
+		mainWindow.setSizeFull();
+		VerticalLayout layout = new VerticalLayout();
+		layout.setSizeFull();
+		mainWindow.setContent(layout);
+		Refresher ref = new Refresher();
+		ref.setRefreshInterval(1000);
+		layout.addComponent(ref);
+		CMWidget widget = new CMWidget(authKey, myURL);
+		widget.setSizeFull();
+		layout.addComponent(widget);
+		layout.setExpandRatio(widget, 1);
+		
+//		mainWindow.setContent(new CMWidget(authKey, myURL));
 	}
 }

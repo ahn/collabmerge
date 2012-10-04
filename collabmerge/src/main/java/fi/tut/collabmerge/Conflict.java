@@ -7,11 +7,13 @@ public class Conflict {
 	private final String mine;
 	private final String theirs;
 	private final String markerId;
+	private final String filename;
 	private boolean resolved = false;
-	public Conflict(String mine, String theirs, String markerId) {
+	public Conflict(String filename, String markerId, String mine, String theirs) {
+		this.filename = filename;
+		this.markerId = markerId;
 		this.mine = mine;
 		this.theirs = theirs;
-		this.markerId = markerId;
 	}
 	public String getMine() {
 		return mine;
@@ -21,6 +23,9 @@ public class Conflict {
 	}
 	public String getMarkerId() {
 		return markerId;
+	}
+	public String getFilename() {
+		return filename;
 	}
 	
 	public boolean isResolved() {

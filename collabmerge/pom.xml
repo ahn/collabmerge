@@ -81,25 +81,25 @@
       <!-- A simple Jetty test server at http://localhost:8080/collabmerge can be launched with the Maven goal jetty:run 
         and stopped with jetty:stop -->
       <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.24</version>
-        <configuration>
-          <stopPort>9966</stopPort>
-          <stopKey>collabmerge</stopKey>
-          <!-- Redeploy every x seconds if changes are detected, 0 for no automatic redeployment -->
-          <scanIntervalSeconds>2</scanIntervalSeconds>
-          <!-- make sure Jetty also finds the widgetset -->
-          <webAppConfig>
-            <contextPath>/collabmerge</contextPath>
-            <baseResource implementation="org.mortbay.resource.ResourceCollection">
-              <!-- Workaround for Maven/Jetty issue http://jira.codehaus.org/browse/JETTY-680 -->
-              <!-- <resources>src/main/webapp,${project.build.directory}/${project.build.finalName}</resources> -->
-              <resourcesAsCSV>src/main/webapp,${project.build.directory}/${project.build.finalName}</resourcesAsCSV>
-            </baseResource>
-          </webAppConfig>
-        </configuration>
-      </plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>7.6.0.v20120127</version>
+				<configuration>
+					<stopPort>9966</stopPort>
+					<stopKey>collabmerge</stopKey>
+					<!-- Redeploy every x seconds if changes are detected, 0 for no automatic 
+						redeployment -->
+					<scanIntervalSeconds>2</scanIntervalSeconds>
+					<!-- make sure Jetty also finds the widgetset -->
+					<webAppConfig>
+						<contextPath>/collabmerge</contextPath>
+						<baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
+							<resourcesAsCSV>src/main/webapp,${project.build.directory}/${project.build.finalName}</resourcesAsCSV>
+						</baseResource>
+					</webAppConfig>
+
+				</configuration>
+			</plugin>
     </plugins>
   </build>
 
@@ -155,13 +155,19 @@
     <dependency>
 	   <groupId>org.vaadin</groupId>
 	   <artifactId>collabaceeditor</artifactId>
-	   <version>0.2.2</version>
+	   <version>0.2.3</version>
+	</dependency>
+
+	<dependency>
+		<groupId>org.vaadin.addons</groupId>
+		<artifactId>refresher</artifactId>
+		<version>1.1.1</version>
 	</dependency>
 
 	<dependency>
 		<groupId>org.vaadin</groupId>
 		<artifactId>chatbox</artifactId>
-		<version>0.0.3</version>
+		<version>0.0.4</version>
 	</dependency>
  
     <dependency>

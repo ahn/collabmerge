@@ -10,9 +10,12 @@ import com.vaadin.ui.themes.BaseTheme;
 public class ConflictTab extends VerticalLayout {
 	
 	private final Conflict conflict;
-	private final Merge merge;
-	private final Button resolveButton = new Button("Mark As Resolved");
-	private final Button scrollButton = new Button("Scroll To Conflict");
+//	private final MultiMerge mm;
+	private String mergerName;
+	private String mergeHeadName;
+	
+	private final Button resolveButton = new Button("Mark as Resolved");
+	private final Button scrollButton = new Button("Go to Conflict");
 	{
 		scrollButton.setStyleName(BaseTheme.BUTTON_LINK);
 	}
@@ -25,10 +28,11 @@ public class ConflictTab extends VerticalLayout {
 		theirsButton.setStyleName(BaseTheme.BUTTON_LINK);
 	}
 	
-	public ConflictTab(Conflict conflict, Merge merge) {
+	public ConflictTab(Conflict conflict, String mergerName, String mergeHeadName) {
 		super();
 		this.conflict = conflict;
-		this.merge = merge;
+		this.mergerName = mergerName;
+		this.mergeHeadName = mergeHeadName;
 		draw();
 	}
 	
@@ -38,14 +42,14 @@ public class ConflictTab extends VerticalLayout {
 		addComponent(newSpacer());
 		
 		Label mineLabel = new Label("<strong>"+conflict.getMine()+"</strong>", Label.CONTENT_XHTML);
-		mineLabel.setCaption("By "+merge.getConflictCreator().name+":");
+		mineLabel.setCaption("By "+mergerName+":");
 //		mineLabel.setContentMode(Label.CONTENT_PREFORMATTED);
 		addComponent(mineLabel);
 		addComponent(mineButton);
 		addComponent(newSpacer());
 		
 		Label theirsLabel = new Label("<strong>"+conflict.getTheirs()+"</strong>", Label.CONTENT_XHTML);
-		theirsLabel.setCaption("Merge Head (by "+merge.getMergeHeadAuthor().name+")");
+		theirsLabel.setCaption("FileMerge Head (by "+mergeHeadName+")");
 //		theirsLabel.setContentMode(Label.CONTENT_PREFORMATTED);
 		addComponent(theirsLabel);
 		addComponent(theirsButton);
