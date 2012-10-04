@@ -40,16 +40,18 @@ public class MergeUtil {
 		return mergerAuthKey;
 	}
 	
-	public static synchronized String getMergeResultForFile(String authKey, String filename) {
+	public static String getMergeResultForFile(String authKey, String filename) {
 		MergeResult result = waitForMerge(authKey);
 		return result==null ? null : result.getFile(filename);
 	}
 
-	public static synchronized MergeResult waitForMerge(String authKey) {
+	private static MergeResult waitForMerge(String authKey) {
 		MergeAuthor ma = getMergeAuthor(authKey);
 		if (ma == null || !ma.author.isMerger) {
 			return null;
 		}
+		
+		// TODO sync somewhere around here?
 
 		MergeResult result = ma.merge.awaitMergeResult();
 		destroyMerge(authKey);

@@ -270,12 +270,14 @@ if __name__=='__main__':
     args = parser.parse_args()
     print args
     
-    if args.upload:
+    if args.upload and not args.download:
         print "UPLOAD!"
         sys.exit(upload(args.MERGED))
-    elif args.download:
+    elif args.download and not args.upload:
         print "Download!"
         sys.exit(download(get_unfinished_merge()))
     else:
-        sys.exit(main(args.BASE, args.LOCAL, args.REMOTE, args.MERGED))
+        upload()
+        open_browser()
+        download()
 
