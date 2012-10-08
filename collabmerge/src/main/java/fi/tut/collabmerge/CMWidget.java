@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collection;
-import java.util.Set;
 
 import org.vaadin.chatbox.ChatBox;
 
@@ -104,6 +103,7 @@ public class CMWidget extends HorizontalSplitPanel {
 		if (mergeAuthor.author.isMerger) {
 			foo2();
 		}
+		
 		
 		updateResolved();
 	}
