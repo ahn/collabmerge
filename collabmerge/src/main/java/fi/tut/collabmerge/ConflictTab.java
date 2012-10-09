@@ -1,5 +1,8 @@
 package fi.tut.collabmerge;
 
+import org.vaadin.aceeditor.AceEditor;
+import org.vaadin.aceeditor.gwt.ace.AceMode;
+
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -15,6 +18,9 @@ public class ConflictTab extends VerticalLayout {
 	private String mergeHeadName;
 	
 	private final Button resolveButton = new Button("Mark as Resolved");
+	{
+		resolveButton.setWidth("100%");
+	}
 	private final Button scrollButton = new Button("Go to Conflict");
 	{
 		scrollButton.setStyleName(BaseTheme.BUTTON_LINK);
@@ -27,6 +33,11 @@ public class ConflictTab extends VerticalLayout {
 	{
 		theirsButton.setStyleName(BaseTheme.BUTTON_LINK);
 	}
+	
+
+
+	private AceEditor mineEditor;
+	private AceEditor theirsEditor;
 	
 	public ConflictTab(Conflict conflict, String mergerName, String mergeHeadName) {
 		super();
@@ -41,22 +52,32 @@ public class ConflictTab extends VerticalLayout {
 		addComponent(scrollButton);
 		addComponent(newSpacer());
 		
-		Label mineLabel = new Label("<strong>"+conflict.getMine()+"</strong>", Label.CONTENT_XHTML);
-		mineLabel.setCaption("By "+mergerName+":");
-//		mineLabel.setContentMode(Label.CONTENT_PREFORMATTED);
-		addComponent(mineLabel);
+		mineEditor = new AceEditor();
+		mineEditor.setCaption(""+mergerName+":");
+		mineEditor.setValue(conflict.getMine());
+		System.out.println("conflict.getFilename() " + conflict.getFilename());
+		mineEditor.setMode(AceMode.forFile(conflict.getFilename()));
+		mineEditor.setWidth("100%");
+		mineEditor.setHeight("100px");
+		
+		addComponent(mineEditor);
 		addComponent(mineButton);
 		addComponent(newSpacer());
 		
-		Label theirsLabel = new Label("<strong>"+conflict.getTheirs()+"</strong>", Label.CONTENT_XHTML);
-		theirsLabel.setCaption("FileMerge Head (by "+mergeHeadName+")");
-//		theirsLabel.setContentMode(Label.CONTENT_PREFORMATTED);
-		addComponent(theirsLabel);
+		theirsEditor = new AceEditor();
+		theirsEditor.setCaption("Merge head ("+mergeHeadName+")");
+		theirsEditor.setValue(conflict.getTheirs());
+		theirsEditor.setMode(AceMode.forFile(conflict.getFilename()));
+		theirsEditor.setWidth("100%");
+		theirsEditor.setHeight("100px");
+		
+		addComponent(theirsEditor);
 		addComponent(theirsButton);
 		addComponent(newSpacer());
 
 		
 		addComponent(resolveButton);
+		addComponent(newSpacer());
 	}
 
 	private static Component newSpacer() {
@@ -82,5 +103,13 @@ public class ConflictTab extends VerticalLayout {
 
 	public Conflict getConflict() {
 		return conflict;
+	}
+	
+	public AceEditor getMineEditor() {
+		return mineEditor;
+	}
+
+	public AceEditor getTheirsEditor() {
+		return theirsEditor;
 	}
 }

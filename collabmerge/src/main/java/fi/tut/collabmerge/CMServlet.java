@@ -39,32 +39,11 @@ public class CMServlet extends AbstractApplicationServlet {
 	@Override
 	protected void service(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		if (request.getParameter("upload") != null) {
-//			Map<String, Map<String,String>> paramsByFile = new HashMap<String, Map<String,String>>();
-//			
-//			
-//			for (Object eo : request.getParameterMap().entrySet()) {
-//				@SuppressWarnings("unchecked")
-//				Map.Entry<String, String> e = (Entry<String, String>) eo;
-//				String key = (String)e.getKey();
-//				if (key.startsWith("author")) {
-//					continue;
-//				}
-//				String val = (String)e.getValue();
-//				String[] nums = key.split(":");
-//				
-//				if (!paramsByFile.containsKey(nums[0])) {
-//					paramsByFile.put(nums[0], new HashMap<String, String>());
-//				}
-//				paramsByFile.get(nums[0]).put(nums[1], val);
-//				
-//			}
-			
+		if (request.getParameter("upload") != null) {			
 			
 			String filename = request.getParameter("filename");
 			String mergeText = request.getParameter("filecontent");
 			
-
 			LinkedList<Author> authors = new LinkedList<Author>();
 			for (int ai = 0; true; ai++) {
 				String anp = "author" + ai;
@@ -84,18 +63,14 @@ public class CMServlet extends AbstractApplicationServlet {
 			MergeAuthor ma = MergeUtil.getMergeAuthor(auth);
 			if (ma.author.isMerger) {
 				ma.merge.addFile(filename, mergeText);
+				// ???
+				response.addHeader("Content-Type", "text/plain;charset="+ Charset.defaultCharset().toString());
+				response.getWriter().println(auth);
 			}
 			else {
 				System.err.println("!!!!!!!!!!!!!!!!!!!!");
 			}
-
-			// ???
-			response.addHeader("Content-Type", "text/plain;charset="
-					+ Charset.defaultCharset().toString());
-			// response.addHeader("Content-Type",
-			// "text/plain;charset="+request.getCharacterEncoding());
-
-			response.getWriter().println(auth);
+			
 		} else if (request.getParameter("download") != null) {
 			String authKey = request.getParameter("auth");
 			String filename = request.getParameter("filename");
@@ -104,8 +79,6 @@ public class CMServlet extends AbstractApplicationServlet {
 			// ???
 			response.addHeader("Content-Type", "text/plain;charset="
 					+ Charset.defaultCharset().toString());
-			// response.addHeader("Content-Type",
-			// "text/plain;charset="+request.getCharacterEncoding());
 
 			PrintWriter out = response.getWriter();
 

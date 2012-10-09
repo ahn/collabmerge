@@ -16,19 +16,16 @@ import org.vaadin.diffsync.Shared;
 import com.vaadin.ui.Accordion;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
 
 import fi.tut.collabmerge.Conflict.ResolvedListener;
 
 @SuppressWarnings("serial")
-public class ConflictWidget extends Panel /*implements SelectionChangeListener*/ {
+public class ConflictWidget extends Panel {
 	
 	private VerticalLayout layout = new VerticalLayout();
-//	private CollabDocAceEditor editor;
 	private HashMap<String, Component> tabsByMarkerId = new HashMap<String, Component>();
 	private String selectedMarker;
 	private Accordion tabs = new Accordion();
@@ -38,10 +35,6 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 	private FileTabSheet sheet;
 	private CollabDocAceEditor selectedEditor;
 	
-//	public ConflictWidget() {
-//
-//	}
-	
 	public ConflictWidget(List<Conflict> conflicts, String mergerName, String mergeHeadName, FileTabSheet sheet) {
 		super("Conflicts ("+conflicts.size()+")");
 		
@@ -49,14 +42,6 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 		this.mergerName = mergerName;
 		this.mergeHeadName = mergeHeadName;
 		this.sheet = sheet;
-//		sheet.addListener(new SelectedTabChangeListener() {
-//			
-////			@Override
-////			public void selectedTabChange(SelectedTabChangeEvent event) {
-////				event.getComponent();
-////				selectedEditor = sheet.getFilenameOf(event.getComponent());
-////			}
-//		});
 		
 		drawConflicts();
 		layout.addComponent(tabs);
@@ -70,47 +55,6 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 			newTab(c, i++);
 		}
 	}
-
-//	public void listenToEditor(CollabDocAceEditor editor) {
-//		if (editor==this.editor) {
-//			return;
-//		}
-//		this.editor = editor;
-//		editor.addListener(this);
-//	}
-//	
-//	public void connectTo(FileTabSheet sheet) {
-//		this.sheet = sheet;
-//	}
-
-//	@Override
-//	public void selectionChanged(int start, int end) {
-//		int smaller = Math.min(start,end);
-//		int bigger = Math.max(start,end);
-//		LinkedList<String> touchingMarkers = new LinkedList<String>();
-//		Map<String, Marker> markers = editor.getShadow().getMarkers();
-//		for (Entry<String, Marker> e : markers.entrySet()) {
-//			final Marker m = e.getValue();
-//			
-//			if (m.touches(smaller, bigger)) {
-//				touchingMarkers.add(e.getKey());
-//			}
-//		}
-//		
-//		LinkedList<String> removed = new LinkedList<String>();
-//		for (String mid : tabsByMarkerId.keySet()) {
-//			if (!markers.containsKey(mid)) {
-//				removed.add(mid);
-//			}
-//		}
-//		
-//		
-//		if (touchingMarkers.size()>0 && !touchingMarkers.contains(selectedMarker)) {
-//			selectedMarker = touchingMarkers.getFirst();
-//			tabs.setSelectedTab(tabsByMarkerId.get(selectedMarker));
-//		}
-//	
-//	}
 	
 	public void sese(CollabDocAceEditor editor, int start, int end) {
 		int smaller = Math.min(start,end);
@@ -124,8 +68,6 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 				touchingMarkers.add(e.getKey());
 			}
 		}
-		
-	
 		
 		
 		if (touchingMarkers.size()>0 && (selectedEditor!=editor || !touchingMarkers.contains(selectedMarker))) {
@@ -160,7 +102,7 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 			public void buttonClick(ClickEvent event) {
 				if (editor!=null) {
 					Doc doc = editor.getShared().getValue();
-					DocDiff dd = MergeUtil.replaceMarkerContentDiff(doc, conflict.getMarkerId(), conflict.getMine());
+					DocDiff dd = MergeUtil.replaceMarkerContentDiff(doc, conflict.getMarkerId(), (String) tab.getMineEditor().getValue());
 					editor.getShared().applyDiff(dd, Shared.NO_COLLABORATOR_ID);
 				}
 			}
@@ -171,7 +113,7 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 			public void buttonClick(ClickEvent event) {
 				if (editor!=null) {
 					Doc doc = editor.getShared().getValue();
-					DocDiff dd = MergeUtil.replaceMarkerContentDiff(doc, conflict.getMarkerId(), conflict.getTheirs());
+					DocDiff dd = MergeUtil.replaceMarkerContentDiff(doc, conflict.getMarkerId(),  (String) tab.getTheirsEditor().getValue());
 					editor.getShared().applyDiff(dd, Shared.NO_COLLABORATOR_ID);
 				}
 			}
@@ -186,7 +128,7 @@ public class ConflictWidget extends Panel /*implements SelectionChangeListener*/
 		});
 		final String filename = conflict.getFilename();
 		tabsByMarkerId.put(filename+":"+markerId, tab);
-		tabs.addTab(tab, conflict.getFilename()+": " + conflict.getMine());
+		tabs.addTab(tab, "In "+conflict.getFilename());
 		
 		conflict.addListener(new ResolvedListener() {
 			@Override

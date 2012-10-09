@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.vaadin.aceeditor.collab.DocDiff;
@@ -16,7 +17,7 @@ import org.vaadin.diffsync.TextDiff;
 
 public class MergeUtil {
 
-	//private static Random rnd = new Random();
+	private static Random rnd = new Random();
 	private static ConcurrentHashMap<String, MergeAuthor> allAuthKeys = new ConcurrentHashMap<String, MergeAuthor>();
 	private static ConcurrentHashMap<String, Collection<String>> mergerCollaborators = new ConcurrentHashMap<String, Collection<String>>();
 
@@ -65,10 +66,9 @@ public class MergeUtil {
 	private static int debug_i = 0;
 	private synchronized static String addMergeAuthor(MergeAuthor ma) {
 		while (true) {
-			String key = "" + (++debug_i);
+//			String key = "" + (++debug_i);
 			//String key = new BigInteger(16, rnd).toString(Character.MAX_RADIX);
-			// String key = Long.toString(Math.abs(rnd.nextLong()) % 1000L,
-			// Character.MAX_RADIX).toUpperCase();
+			 String key = Long.toString(Math.abs(rnd.nextLong()) % 1000L, Character.MAX_RADIX).toUpperCase();
 			if (allAuthKeys.putIfAbsent(key, ma) == null) {
 				return key;
 			}
@@ -130,7 +130,6 @@ public class MergeUtil {
 	public static DocDiff replaceMarkerContentDiff(Doc doc, String markerId, String newContent) {
 		Marker m = doc.getMarkers().get(markerId);
 		
-		System.err.println("mmm "+m);
 		if (m==null) {
 			return null;
 		}

@@ -101,6 +101,18 @@
 				</configuration>
 			</plugin>
     </plugins>
+
+
+	<resources>
+		<resource>
+			<directory>${project.basedir}/resources</directory>
+			<includes>
+				<include>testconflict.txt</include>
+			</includes>
+		</resource>
+	</resources>
+    
+    
   </build>
 
   <repositories>
