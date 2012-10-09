@@ -1,0 +1,33 @@
+[merge]
+	tool = collabmerge
+	prompt = false
+
+[mergetool "collabmerge"]
+	cmd = python C:/Users/niemin75/git/collabmerge/scripts/collabmerge.py $BASE $LOCAL $REMOTE $MERGED
+	trustExitCode = true
+	keepBackup = false
+	
+	
+
+[mergetool "collabmerge-upload"]
+	cmd = python C:/Users/niemin75/git/collabmerge/scripts/collabmerge.py --upload $BASE $LOCAL $REMOTE $MERGED
+	trustExitCode = true
+	keepBackup = false
+	
+	
+[mergetool "collabmerge-download"]
+	cmd = python C:/Users/niemin75/git/collabmerge/scripts/collabmerge.py --download $BASE $LOCAL $REMOTE $MERGED
+	trustExitCode = true
+	keepBackup = false
+
+[diff]
+	guitool = kdiff3
+[difftool "kdiff3"]
+	path = c:/Program Files (x86)/KDiff3/kdiff3.exe
+[user]
+	name = Antti Nieminen
+	email = anttihn@gmail.com
+[core]
+	autocrlf = true
+[http]
+	proxy = 
