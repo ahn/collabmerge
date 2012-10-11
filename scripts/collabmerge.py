@@ -5,7 +5,7 @@
 This is a script to be used as a Git mergetool.
 See: man git-mergetool
     http://www.kernel.org/pub/software/scm/git/docs/git-mergetool.html
-    
+
 This script uploads the conflicted file to a server where multiple people
 can collaboratively resolve the merge.
 """
@@ -32,7 +32,8 @@ MERGE_URL = "http://localhost:8080/collabmerge"
 #MERGE_URL = "http://localhost:8080/collabmerge"
 
 COLLAB_MERGE_SESSION_FILE = '.collabmergesession'
-AUTO_LAUNCH_BROWSER = True
+
+AUTO_LAUNCH_BROWSER = False
 
 def get_git_executable():
     """Get git executable name. Tested on Linux and Windows."""
@@ -83,7 +84,7 @@ def get_author(commit):
     cmd = GIT+' show --format=format:%an '+ commit
     p = sub.Popen(cmd, shell=True, stdout=sub.PIPE)
     return p.stdout.readline()
-    
+
 def get_email(commit):
     #cmd = [GIT, 'show', '--format=format:%ae', commit]
     cmd = GIT+' show --format=format:%ae '+ commit
@@ -95,7 +96,7 @@ def get_my_name():
     cmd = GIT+' config user.name'
     p = sub.Popen(cmd, shell=True, stdout=sub.PIPE)
     return p.stdout.read()
-    
+
 def get_my_email():
     #cmd = [GIT, 'config', 'user.email']
     cmd = GIT+' config user.email'
@@ -107,16 +108,16 @@ def get_my_email():
 def get_data(MERGED):
     merge_head = read_file(op.join(GIT_ROOT,'MERGE_HEAD')).strip()
     print("MERGE_HEAD=%s" % (merge_head,))
-    
+
     merge_author = get_author(merge_head).strip()
     merge_email = get_email(merge_head).strip()
-        
+
     my_name = get_my_name().strip()
     my_email = get_my_email().strip()
-    
+
     merged_text = read_file(MERGED)
-        
-    return get_encoded_data(os.path.basename(MERGED), merged_text, merge_author, merge_email, my_name, my_email)
+
+    return get_encoded_data(MERGED, merged_text, merge_author, merge_email, my_name, my_email)
 
 def get_encoded_data(filename, merged_text, merge_author, merge_email, my_name, my_email):
     return urllib.urlencode({
@@ -131,24 +132,25 @@ def start_new_session(data):
     """Uploads the data. Returns auth key received from the server."""
     result = urllib2.urlopen(MERGE_URL+'/?upload', data)
     return result.readline().strip() # AuthKey
-    
+
 def update_existing_session(data, auth_key):
     result = urllib2.urlopen(MERGE_URL+'/?upload&auth='+auth_key, data)
     return result.readline().strip() # AuthKey
 
-def download_merge_result(auth_key):
-    mr = urllib2.urlopen(MERGE_URL+'/?download&auth='+auth_key)
+def download_merge_result(auth_key, filename):
+    mr = urllib2.urlopen(MERGE_URL+'/?download&auth='+auth_key,
+            urllib.urlencode({'filename':filename}))
     success = mr.readline().strip()=='SUCCESS'
     if success:
         return mr.read()
     else:
         return None
 
-def write_merge_result(merge_result):
-    f = open(MERGED, 'w')
+def write_merge_result(merge_result, filename):
+    f = open(filename, 'w')
     f.write(merge_result)
     f.close()
-    
+
 def get_unfinished_merge():
     try:
         f = open(COLLAB_MERGE_SESSION_FILE)
@@ -162,7 +164,7 @@ def create_unfinished_merge_file(auth_key):
     f = open(COLLAB_MERGE_SESSION_FILE, 'w')
     f.write(auth_key)
     f.close()
-    
+
 def cleanup():
     os.remove(COLLAB_MERGE_SESSION_FILE)
 
@@ -175,11 +177,11 @@ def main(BASE, LOCAL, REMOTE, MERGED):
             answer = raw_input("Do you want to use the same session with this merge? y/N >")
             if not answer or answer[0].lower()!='y':
                 unfinished = None
-        
+
         # TODO: if unfinished, continue existing session
-        
+
         print
-        
+
         if unfinished is None:
             print "Uploading conflicted file %s..." % (MERGED,),
             auth_key = start_new_session(data);
@@ -190,13 +192,9 @@ def main(BASE, LOCAL, REMOTE, MERGED):
             auth_key = unfinished
             update_existing_session(data, auth_key)
         print
-        
+
         open_browser(auth_key)
-        
-        
-        
-        
-            
+
     except Exception, e:
         print "Error %s" %(e,)
         return 1
@@ -211,11 +209,11 @@ def upload(MERGED):
         #    answer = raw_input("Do you want to use the same session with this merge? y/N >")
         #    if not answer or answer[0].lower()!='y':
         #        unfinished = None
-        
+
         # TODO: if unfinished, continue existing session
-        
+
         print
-        
+
         if unfinished is None:
             print "Uploading conflicted file %s..." % (MERGED,),
             auth_key = start_new_session(data);
@@ -230,28 +228,29 @@ def upload(MERGED):
     except Exception, e:
         print "Error %s" %(e,)
         # TODO
-        return 1
-    return 1
+        return None
+    return auth_key
 
 def open_browser(auth):
     url = MERGE_URL+'/?auth='+auth
     if AUTO_LAUNCH_BROWSER:
-        print "Opening conflict resolving tool."
+        print "Opening conflict resolving tool",
         webbrowser.open(url)
+        print "."
     else:
         print "Point your browser to this URL to resolve the conflict:"
         print
         print url
     print
 
-def download(auth):
-    result = download_merge_result(auth)
+def download(auth, filename):
+    result = download_merge_result(auth, filename)
     if result is None:
         print "Merge cancelled."
         cleanup()
         return 1
     else:
-        write_merge_result(result)
+        write_merge_result(result, filename)
         print "Merge successful."
         cleanup()
         return 0
@@ -266,19 +265,22 @@ if __name__=='__main__':
     parser.add_argument('MERGED')
     parser.add_argument('--download', action='store_true')
     parser.add_argument('--upload', action='store_true')
-    
+
     args = parser.parse_args()
     print args
-    
+
     if args.upload and not args.download:
         print "UPLOAD!"
-        sys.exit(upload(args.MERGED))
+        sys.exit(0 if upload(args.MERGED) else 1)
     elif args.download and not args.upload:
         print "Download!"
         sys.exit(download(get_unfinished_merge()))
     else:
-        upload()
-        open_browser()
-        download()
+        auth = upload(args.MERGED)
+        if auth:
+            open_browser(auth)
+            sys.exit(download(get_unfinished_merge(), args.MERGED))
+        else:
+            sys.exit(1)
 
- 
+
