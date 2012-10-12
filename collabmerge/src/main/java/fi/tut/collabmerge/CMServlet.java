@@ -65,7 +65,7 @@ public class CMServlet extends AbstractApplicationServlet {
 				ma.merge.addFile(filename, mergeText);
 				// ???
 				response.addHeader("Content-Type", "text/plain;charset="+ Charset.defaultCharset().toString());
-				response.getWriter().println(auth);
+				response.getWriter().println("auth="+auth);
 			}
 			else {
 				System.err.println("!!!!!!!!!!!!!!!!!!!!");

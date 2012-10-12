@@ -53,23 +53,26 @@ public class ConflictTab extends VerticalLayout {
 		addComponent(newSpacer());
 		
 		mineEditor = new AceEditor();
+		mineEditor.setUseWrapMode(true);
 		mineEditor.setCaption(""+mergerName+":");
 		mineEditor.setValue(conflict.getMine());
-		System.out.println("conflict.getFilename() " + conflict.getFilename());
 		mineEditor.setMode(AceMode.forFile(conflict.getFilename()));
 		mineEditor.setWidth("100%");
 		mineEditor.setHeight("100px");
+		mineEditor.setReadOnly(true);
 		
 		addComponent(mineEditor);
 		addComponent(mineButton);
 		addComponent(newSpacer());
 		
 		theirsEditor = new AceEditor();
+		theirsEditor.setUseWrapMode(true);
 		theirsEditor.setCaption("Merge head ("+mergeHeadName+")");
 		theirsEditor.setValue(conflict.getTheirs());
 		theirsEditor.setMode(AceMode.forFile(conflict.getFilename()));
 		theirsEditor.setWidth("100%");
 		theirsEditor.setHeight("100px");
+		theirsEditor.setReadOnly(true);
 		
 		addComponent(theirsEditor);
 		addComponent(theirsButton);

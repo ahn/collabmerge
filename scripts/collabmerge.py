@@ -18,19 +18,6 @@ import urllib2
 import subprocess as sub
 import webbrowser
 
-
-
-# MERGE_URL is where the collabmerge web application is running:
-#
-# This is just a temporary place, it might not be always up.
-#MERGE_URL = "http://antti.virtuallypreinstalled.com/collabmerge"
-
-MERGE_URL = "http://localhost:8080/collabmerge"
-
-#
-# For testing the web app
-#MERGE_URL = "http://localhost:8080/collabmerge"
-
 COLLAB_MERGE_SESSION_FILE = '.collabmergesession'
 
 AUTO_LAUNCH_BROWSER = False
@@ -128,17 +115,21 @@ def get_encoded_data(filename, merged_text, merge_author, merge_email, my_name, 
         'author1': merge_author,
         'author1email': merge_email})
 
-def start_new_session(data):
+def start_new_session(url, data):
     """Uploads the data. Returns auth key received from the server."""
-    result = urllib2.urlopen(MERGE_URL+'/?upload', data)
+    result = urllib2.urlopen(url+'/?upload', data)
+    line = result.readline().strip()
+    if line.startswith("auth="):
+        return line[5:]
+    else:
+        raise Exception("Server returned junk.")
+
+def update_existing_session(url, data, auth_key):
+    result = urllib2.urlopen(url+'/?upload&auth='+auth_key, data)
     return result.readline().strip() # AuthKey
 
-def update_existing_session(data, auth_key):
-    result = urllib2.urlopen(MERGE_URL+'/?upload&auth='+auth_key, data)
-    return result.readline().strip() # AuthKey
-
-def download_merge_result(auth_key, filename):
-    mr = urllib2.urlopen(MERGE_URL+'/?download&auth='+auth_key,
+def download_merge_result(url, auth_key, filename):
+    mr = urllib2.urlopen(url+'/?download&auth='+auth_key,
             urllib.urlencode({'filename':filename}))
     success = mr.readline().strip()=='SUCCESS'
     if success:
@@ -184,45 +175,38 @@ def main(BASE, LOCAL, REMOTE, MERGED):
 
         if unfinished is None:
             print "Uploading conflicted file %s..." % (MERGED,),
-            auth_key = start_new_session(data);
+            auth_key = start_new_session(url, data);
             print "Uploaded"
             create_unfinished_merge_file(auth_key)
         else:
             print "Continuing an existing session."
             auth_key = unfinished
-            update_existing_session(data, auth_key)
+            update_existing_session(url, data, auth_key)
         print
 
         open_browser(auth_key)
 
     except Exception, e:
-        print "Error %s" %(e,)
+        print "Error: %s" %(e,)
         return 1
 
-def upload(MERGED):
+def upload(MERGED, cont):
 
     try:
         data = get_data(MERGED)
-        unfinished = get_unfinished_merge()
-        #if unfinished is not None:
-        #    print "Found an unfinished merge session: %s" % (unfinished,)
-        #    answer = raw_input("Do you want to use the same session with this merge? y/N >")
-        #    if not answer or answer[0].lower()!='y':
-        #        unfinished = None
-
-        # TODO: if unfinished, continue existing session
+        unfinished = get_unfinished_merge() if cont else None
 
         print
 
         if unfinished is None:
             print "Uploading conflicted file %s..." % (MERGED,),
-            auth_key = start_new_session(data);
+            auth_key = start_new_session(url, data);
             print "Uploaded"
             create_unfinished_merge_file(auth_key)
         else:
             print "Continuing an existing session."
             auth_key = unfinished
-            update_existing_session(data, auth_key)
+            update_existing_session(url, data, auth_key)
         print
         print "AUTH KEY: ", auth_key
     except Exception, e:
@@ -231,20 +215,20 @@ def upload(MERGED):
         return None
     return auth_key
 
-def open_browser(auth):
-    url = MERGE_URL+'/?auth='+auth
+def open_browser(url, auth):
+    full_url = url+'/?auth='+auth
     if AUTO_LAUNCH_BROWSER:
         print "Opening conflict resolving tool",
-        webbrowser.open(url)
+        webbrowser.open(full_url)
         print "."
     else:
         print "Point your browser to this URL to resolve the conflict:"
         print
-        print url
+        print full_url
     print
 
-def download(auth, filename):
-    result = download_merge_result(auth, filename)
+def download(url, auth, filename):
+    result = download_merge_result(url, auth, filename)
     if result is None:
         print "Merge cancelled."
         cleanup()
@@ -265,21 +249,21 @@ if __name__=='__main__':
     parser.add_argument('MERGED')
     parser.add_argument('--download', action='store_true')
     parser.add_argument('--upload', action='store_true')
+    parser.add_argument('--url', default='http://antti.virtuallypreinstalled.com/collabmerge')
 
     args = parser.parse_args()
-    print args
+
+    url = args.url if args.url.startswith("http://") or args.url.startswith("https://") else "http://"+url
 
     if args.upload and not args.download:
-        print "UPLOAD!"
-        sys.exit(0 if upload(args.MERGED) else 1)
+        sys.exit(0 if upload(url, args.MERGED, True) else 1)
     elif args.download and not args.upload:
-        print "Download!"
-        sys.exit(download(get_unfinished_merge()))
+        sys.exit(download(url, get_unfinished_merge()))
     else:
-        auth = upload(args.MERGED)
+        auth = upload(args.MERGED, False)
         if auth:
-            open_browser(auth)
-            sys.exit(download(get_unfinished_merge(), args.MERGED))
+            open_browser(url, auth)
+            sys.exit(download(url, get_unfinished_merge(), args.MERGED))
         else:
             sys.exit(1)
 

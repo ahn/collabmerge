@@ -1,5 +1,6 @@
 package fi.tut.collabmerge;
 
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,8 +68,8 @@ public class MergeUtil {
 	private synchronized static String addMergeAuthor(MergeAuthor ma) {
 		while (true) {
 //			String key = "" + (++debug_i);
-			//String key = new BigInteger(16, rnd).toString(Character.MAX_RADIX);
-			 String key = Long.toString(Math.abs(rnd.nextLong()) % 1000L, Character.MAX_RADIX).toUpperCase();
+			String key = new BigInteger(16, rnd).toString(Character.MAX_RADIX);
+			//String key = Long.toString(Math.abs(rnd.nextLong()) % 1000L, Character.MAX_RADIX).toUpperCase();
 			if (allAuthKeys.putIfAbsent(key, ma) == null) {
 				return key;
 			}
