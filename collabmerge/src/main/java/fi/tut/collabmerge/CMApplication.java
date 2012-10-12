@@ -2,24 +2,13 @@ package fi.tut.collabmerge;
 
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.LinkedList;
-import java.util.Map;
 
-import com.github.wolfie.refresher.Refresher;
 import com.vaadin.Application;
-import com.vaadin.terminal.DownloadStream;
-import com.vaadin.terminal.ParameterHandler;
-import com.vaadin.terminal.URIHandler;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-import com.vaadin.ui.Window.Notification;
 
 @SuppressWarnings("serial")
 public class CMApplication extends Application {
@@ -29,20 +18,20 @@ public class CMApplication extends Application {
 	// for debugging
 
 
-	private URL myURL;
-	private String myAuthKey;
+
 	
 	
 	public CMApplication() {
 		super();
-		demoInit();
+		//demoInit();
 	}
 	
 	@Override
 	public Window getWindow(String name) {
 		Window w = super.getWindow(name);
 		if (w == null) {
-			w = new Window();
+			System.out.println("new window");
+			w = new CMWindow();
 			w.setName(name);
 			addWindow(w);
 		}
@@ -51,63 +40,15 @@ public class CMApplication extends Application {
 	
 	@Override
 	public void init() {
-		mainWindow = new Window("collabmerge");
-		mainWindow.addParameterHandler(new ParameterHandler() {
-			public void handleParameters(Map<String, String[]> parameters) {
-				String[] items = parameters.get("auth");
-				if (items!=null && items.length==1) {
-					myAuthKey = items[0];
-				}
-			}
-		});
-		mainWindow.addURIHandler(new URIHandler() {
-			public DownloadStream handleURI(URL context, String relativeUri) {
-				myURL = context;
-				startApp();
-				return null;
-			}
-		});
+		mainWindow = new CMWindow();
+
 		setMainWindow(mainWindow);
 	}
 	
-	private void startApp() {
-		System.err.println("START APP");
-		if (myAuthKey == null) {
-			showError("No Authentication");
-			return;
-		}
-		MergeAuthor mergeAuthor = MergeUtil.getMergeAuthor(myAuthKey);
-		if (mergeAuthor==null) {
-			showError("Invalid Authentication");
-			return;
-		}
-		if (mergeAuthor.merge.isCompleted()) {
-			showError("The merge is already completed.");
-			return;
-		}
-		
-		showWindow(myAuthKey, mergeAuthor);
-	}
 	
-	private void showError(String error) {
-		mainWindow.setContent(null);
-		mainWindow.showNotification(error, Notification.TYPE_ERROR_MESSAGE);
-	}
+
 	
-	
-	private void showWindow(String authKey, MergeAuthor mergeAuthor) {
-		mainWindow.setSizeFull();
-		VerticalLayout layout = new VerticalLayout();
-		layout.setSizeFull();
-		mainWindow.setContent(layout);
-		Refresher ref = new Refresher();
-		ref.setRefreshInterval(1000);
-		layout.addComponent(ref);
-		CMWidget widget = new CMWidget(authKey, myURL);
-		widget.setSizeFull();
-		layout.addComponent(widget);
-		layout.setExpandRatio(widget, 1);
-	}
+
 	
 	private void demoInit() {
 
