@@ -20,7 +20,7 @@ import webbrowser
 
 COLLAB_MERGE_SESSION_FILE = '.collabmergesession'
 
-AUTO_LAUNCH_BROWSER = False
+AUTO_LAUNCH_BROWSER = True
 
 def get_git_executable():
     """Get git executable name. Tested on Linux and Windows."""
@@ -208,7 +208,7 @@ def upload(MERGED, cont):
             auth_key = unfinished
             update_existing_session(url, data, auth_key)
         print
-        print "AUTH KEY: ", auth_key
+        #print "AUTH KEY: ", auth_key
     except Exception, e:
         print "Error %s" %(e,)
         # TODO
